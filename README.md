@@ -10,7 +10,7 @@ To run Umierrorcorrect via Docker, see the [Docker documentation](doc/docker.md)
 To install the UMI-errorcorrect pipeline from source, open a terminal and type the following:
 
 ```bash
-pip install https://github.com/tobbeost/umierrorcorrect/archive/v0.19.tar.gz 
+pip install https://github.com/stahlberggroup/umierrorcorrect/archive/v0.19.tar.gz 
 ```
     
 After installation, try to run the pipeline:
@@ -67,10 +67,10 @@ filter_cons.py -h
 Tutorial
 --------
 
-[Link to the Umierrorcorrect tutorial](https://github.com/tobbeost/umierrorcorrect/wiki/Tutorial)
+[Link to the Umierrorcorrect tutorial](https://github.com/stahlberggroup/umierrorcorrect/wiki/Tutorial)
 
 
 Example of UMI definition options
 ----------------------------------
 
-[UMI definition options](https://github.com/tobbeost/umierrorcorrect/wiki/UMI-definition-options)
+[UMI definition options](https://github.com/tobbeost/umierrorcorrect/stahlberggroup/UMI-definition-options)
