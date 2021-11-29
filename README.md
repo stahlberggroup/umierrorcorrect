@@ -9,13 +9,13 @@ To run Umierrorcorrect via Docker, see the [Docker documentation](doc/docker.md)
 
 To install the UMI-errorcorrect pipeline from source, open a terminal and type the following:
 
-```bash
-pip install https://github.com/stahlberggroup/umierrorcorrect/archive/0.20.tar.gz 
+```
+pip install umierrorcorrect
 ```
     
 After installation, try to run the pipeline:
 
-```bash
+```
 run_umierrorcorrect.py -h
 ```
 
@@ -56,7 +56,7 @@ It is also to possible to run the pipeline step-by-step.
 
 To see the options for each step, type the following:
 
-```bash
+```
 preprocess.py -h
 run_mapping.py -h
 umi_error_correct.py -h

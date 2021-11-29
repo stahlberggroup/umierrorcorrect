@@ -5,13 +5,11 @@ FROM ubuntu:18.04
 LABEL base.image="ubuntu:18.04"
 LABEL version="1"
 LABEL software="umierrorcorrect"
-LABEL software.version="0.20"
+LABEL software.version="0.21"
 LABEL about.summary="Umi error correct pipeline"
 LABEL about.home="https://github.com/stahlberggroup/umierrorcorrect"
 LABEL about.tags="Genomics"
 
-# Add umierrorcorrect download from github to container in /etc
-ADD https://github.com/stahlberggroup/umierrorcorrect/archive/0.20.tar.gz /etc/
 
 # Update Ubuntu Software repository and install dependencies
 RUN apt-get update \
@@ -37,7 +35,7 @@ RUN apt-get update \
     pip3 install pysam && \
     pip3 install scipy && \
     pip3 install matplotlib && \
-    pip3 install /etc/v0.19.tar.gz
+    pip3 install umierrorcorrect 
 
 
 ################## create folders ##################
