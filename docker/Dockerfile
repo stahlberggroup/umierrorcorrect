@@ -21,6 +21,7 @@ RUN apt-get update \
     libz-dev \
     libxml2-dev \
     libcurl4-openssl-dev \
+    libjpeg-dev \
     bzip2 \
     xz-utils \
     gcc \
