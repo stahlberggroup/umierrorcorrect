@@ -24,6 +24,7 @@ def parseArgs():
     parser.add_argument('-hist', '--hist_file', dest='hist_file',
                         help='Path to the .hist file')
     parser.add_argument('-s','--sample_name',dest='samplename', help='Sample name, if not provided it is extracted')
+    parser.add_argument('--output_raw',dest='output_raw',help="Write raw histogram counts to a txt file", action="store_true")
     args = parser.parse_args(sys.argv[1:])
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
     logging.info('Starting UMI Error Correct')
@@ -272,7 +273,7 @@ def get_percent_mapped_reads(num_fastq_reads, bamfile):
 #    plt.savefig(plot_filename)
 
 
-def run_get_consensus_statistics(output_path, consensus_filename, stat_filename, samplename=None):
+def run_get_consensus_statistics(output_path, consensus_filename, stat_filename,output_raw, samplename):
     logging.info('Getting consensus statistics')
     if not consensus_filename:
         consensus_filename=glob.glob(output_path + '/*_consensus_reads.bam')[0]
@@ -297,17 +298,29 @@ def run_get_consensus_statistics(output_path, consensus_filename, stat_filename,
     outfilename = output_path + '/' + samplename + '_target_coverage.txt'
     with open(outfilename, 'w') as g:
         g.write(calculate_target_coverage(hist,fsizes))
+    if output_raw:
+        largehist=[]
+        outfilename = output_path + '/' + samplename + '_consensus_group_counts.txt'
+        for h in hist:
+            largehist=largehist+h.hist
+            largehist=largehist + [1] * h.singletons
+        l=Counter(largehist)
+        print(l)
+        with open(outfilename, 'w') as g:
+            for size in sorted(l):
+                g.write(str(size)+'\t'+str(l[size])+'\n')
+            
     #print(hist)
     #plot_histogram(hist,output_path+'/histogram.png')
     logging.info('Finished consensus statistics')
     #write_report()
 
-def main(output_path, consensus_filename, stat_filename, samplename):
-    run_get_consensus_statistics(output_path,  consensus_filename, stat_filename, samplename)
+def main(output_path, consensus_filename, stat_filename, output_raw, samplename):
+    run_get_consensus_statistics(output_path,  consensus_filename, stat_filename,output_raw, samplename )
 
 
 if __name__=='__main__':
     args=parseArgs()
-    main(args.output_path, args.cons_bam_file, args.hist_file, args.samplename)
+    main(args.output_path, args.cons_bam_file, args.hist_file, args.output_raw,args.samplename)
 
 
