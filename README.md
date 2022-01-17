@@ -73,4 +73,4 @@ Tutorial
 Example of UMI definition options
 ----------------------------------
 
-[UMI definition options](https://github.com/tobbeost/umierrorcorrect/stahlberggroup/UMI-definition-options)
+[UMI definition options](https://github.com/stahlberggroup/umierrorcorrect/wiki/UMI-definition-options)
