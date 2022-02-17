@@ -153,11 +153,6 @@ def preprocess_pe(r1file, r2file, outfile1, outfile2, barcode_length, spacer_len
                 g2.write('\n'.join([newname2, seq2, '+', qual2]) + '\n')
     return(2*nseqs)
 
-class ubam_read:
-    
-    def __init__(self, sequence, qual, name)
-        
-
 def run_preprocessing(args):
     '''Start preprocessing.'''
     logging.info("Start preprocessing of sample {}".format(args.sample_name))
@@ -184,7 +179,7 @@ def run_preprocessing(args):
     logging.info('Writing output files to {}'.format(args.output_path))
     if args.mode == 'single':
         outfilename = args.output_path + '/' + args.sample_name + '_umis_in_header.fastq'
-        niseqs = preprocess_se(r1file, outfilename, args.umi_length, args.spacer_length)
+        nseqs = preprocess_se(r1file, outfilename, args.umi_length, args.spacer_length)
         run_pigz(outfilename, args.num_threads, args.gziptool)
         os.remove(r1file)
         os.rmdir(newtmpdir)
