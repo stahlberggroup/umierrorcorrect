@@ -2,10 +2,7 @@
 import numpy as np
 from numpy import inf
 from numpy import nan
-from scipy.optimize import fmin
-from scipy.stats import beta
-from scipy.special import beta as B
-from scipy.special import comb
+from scipy.stats import betabinom
 import argparse
 import glob
 import sys
@@ -41,9 +38,6 @@ def parseArgs():
     return(args)
 
 
-def prob_bb(n,k,a,b):
-    p = comb(n,k) * B(k+a, n-k+b) / B(a,b)
-    return(p)
 
 def parse_cons_file(filename,fsize=3):
     n1=[]
@@ -142,7 +136,7 @@ def run_call_variants(args):
                 params.append(float(line))
     else:
         params=[2.168215069116764,3531.588541594945]
-    a=prob_bb(n1,a1,params[0],params[1])
+    a=1 - betabinom.cdf(a1-1,n1,params[0],params[1])
     print(params[0])
     print(params[1])
     a[a==inf]=1e-10
