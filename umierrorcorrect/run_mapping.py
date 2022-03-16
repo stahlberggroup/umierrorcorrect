@@ -54,10 +54,32 @@ def get_sample_name(read1, mode):
         samplename = read1.split('/')[-1].rstrip('fastq').rstrip('fastq.gz').rstrip('_R012')
     return(samplename)
 
+def check_bwa_index(reference_file):
+    '''Check if BWA index files exists, otherwise create'''
+    if not os.path.isfile(reference_file):
+        print('Reference genome file {} does not exist, exiting'.format(reference_file))
+        sys.exit(1)
+    else:
+        if not os.path.isfile(reference_file+'.bwt'): #check if index exists
+            print('BWA index for reference genome file {} does not exist'.format(reference_file))
+            answer=input("Do you want to create a BWA index now? (y/n) ".lower().strip())
+            while not (answer == "y" or answer == "yes" or answer == "n" or answer == "no"):
+                print("Answer yes or no ")
+                answer=input("Do you want to create a BWA index now? (y/n) ".lower().strip())
+            if answer[0]=="y":
+                create_index=True
+            else:
+                create_index=False
+                sys.exit(1)
+            if create_index:
+                a=subprocess.Popen(['bwa', 'index', reference_file])
+                a.communicate()
+
 
 def run_mapping(num_threads, reference_file, fastq_files, output_path, sample_name, remove_large_files):
     '''Run mapping with bwa to create a SAM file, then convert it to BAM, sort and index the file'''
     logging.info("Starting mapping with BWA")
+    check_bwa_index(reference_file)
     output_file = output_path + '/' + sample_name
     logging.info("Creating output file: {}.sorted.bam".format(output_file))
     if len(fastq_files) == 1:
