@@ -8,6 +8,7 @@ from umierrorcorrect.version import __version__
 import sys
 import os
 import re
+import glob
 import pysam
 from multiprocessing import Pool, cpu_count
 import subprocess
@@ -487,6 +488,18 @@ def run_umi_errorcorrect(args):
         group_method = 'automatic'
 
     logging.info('Group by position method: {}'.format(group_method))
+    if not args.bam_file : #see if it is possible to guess bam file from previous step.
+        if args.sample_name:
+            testname=args.output_path+'/'+args.sample_name + '.sorted.bam'
+            if os.path.isfile(testname):
+                args.bam_file=testname
+    if not args.bam_file:
+        bamfile=glob.glob(args.output_path+'/*sorted.bam')
+        if len(bamfile) > 1:
+            print("Too many sorted.bam files in output folder, please specify which sample to run with -s (sample name) or -b (path to bam file).")
+            sys.exit(1)
+        else:
+            args.bam_file=bamfile[0]
     if not args.sample_name:
         args.sample_name = get_sample_name(args.bam_file)
     if group_method == 'fromTag':
