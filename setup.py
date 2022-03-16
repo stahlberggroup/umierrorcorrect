@@ -31,5 +31,6 @@ setup(name='umierrorcorrect',
                 'umierrorcorrect/call_variants.py',
                 'umierrorcorrect/filter_bam.py',
                 'umierrorcorrect/filter_cons.py',
-                'umierrorcorrect/downsampling_plots.py'],
+                'umierrorcorrect/downsampling_plots.py',
+                'umierrorcorrect/fit_background_model.py'],
       zip_safe=False)
