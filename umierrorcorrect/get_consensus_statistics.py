@@ -286,7 +286,7 @@ def run_get_consensus_statistics(output_path, consensus_filename, stat_filename,
     histall = get_overall_statistics(hist,fsizes)
     if not consensus_filename:
         consensus_filename=glob.glob(output_path + '/*_consensus_reads.bam')
-        print(consensus_filename)
+        #print(consensus_filename)
     if not samplename:
         samplename = stat_filename.split('/')[-1][:-5]
     outfilename = output_path + '/' + samplename + '_summary_statistics.txt'
@@ -305,7 +305,7 @@ def run_get_consensus_statistics(output_path, consensus_filename, stat_filename,
             largehist=largehist+h.hist
             largehist=largehist + [1] * h.singletons
         l=Counter(largehist)
-        print(l)
+        #print(l)
         with open(outfilename, 'w') as g:
             for size in sorted(l):
                 g.write(str(size)+'\t'+str(l[size])+'\n')

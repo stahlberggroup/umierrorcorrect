@@ -121,11 +121,11 @@ def main(args):
     check_bwa_index(args.reference_file)
     #args=check_args_bam(args)
     fastq_files, nseqs = run_preprocessing(args)  # run preprocessing
-    print(fastq_files, nseqs)
+    logging.info('Files: {}, number of reads: {}'.format(' '.join(fastq_files),nseqs))
     bam_file = run_mapping(args.num_threads, args.reference_file, fastq_files, 
                            args.output_path, args.sample_name, args.remove_large_files)  # run mapping
     args.bam_file = bam_file
-    print(args.bam_file)
+    #print(args.bam_file)
     args.regions_from_tag = False
     run_umi_errorcorrect(args)  #run umi errorcorrect
     cons_bam = args.output_path + '/' + args.sample_name + '_consensus_reads.bam'

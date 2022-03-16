@@ -137,8 +137,8 @@ def run_call_variants(args):
     else:
         params=[2.168215069116764,3531.588541594945]
     a=1 - betabinom.cdf(a1-1,n1,params[0],params[1])
-    print(params[0])
-    print(params[1])
+    #print(params[0])
+    #print(params[1])
     a[a==inf]=1e-10
     a[np.isnan(a)]=1e-10
     a[a==0]=1e-10
@@ -157,7 +157,7 @@ def run_call_variants(args):
 def main(filename,fsize,cutoff):
     spikepositions=[178952085,55599321,7577558,7577547,7577538,7577120]
     f1,n1,data=parse_cons_file(filename,fsize)
-    print(f1)
+    #print(f1)
     f1 = np.array(f1)
     n1 = np.array(n1)
     a1 = f1*n1

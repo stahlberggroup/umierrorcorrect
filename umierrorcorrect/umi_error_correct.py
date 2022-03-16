@@ -275,7 +275,7 @@ def merge_duplicate_positions(args):
 
 def merge_duplicate_positions_all_chromosomes(duppos, cons_file, num_cpus):
     argvec=[]
-    print(duppos)
+    #print(duppos)
     for chrx in duppos:
         tmpargs=(chrx, duppos[chrx], cons_file)
         argvec.append(tmpargs)

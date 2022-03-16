@@ -330,9 +330,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         if len(consensus[pos]) == 1:  #100%
                             consread.add_base(cons_base, get_ascii(cons_qual))
                         else:
-                            if cons_base not in consensus[pos]:
-                                print(cons_base+" not in consensus[pos] "+str(pos), consensus[pos])
-                            else:
+                            if cons_base in consensus[pos]:
                                 percent = (len(consensus[pos][cons_base]) / len(group_seqs))*100.0
                                 if percent >= consensus_freq_threshold: #consensus frequency above threshold
                                     consread.add_base(cons_base, get_ascii(cons_qual))
@@ -407,7 +405,7 @@ def main(bamfilename):
     #start=29451796
     end=29451946
     regions, ends = readBam(bamfilename, 60)
-    print(regions['2'].keys())
+    #print(regions['2'].keys())
     umi_dict=regions[contig][start]
     adj_matrix = cluster_barcodes(umi_dict, 1)
     clusters = get_connected_components(umi_dict, adj_matrix)

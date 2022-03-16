@@ -95,7 +95,7 @@ def check_args_fastq(args):
                 os.remove(f2file)
     elif args.mode == 'single':
         f1file=args.output_path + '/' + args.sample_name + '_umis_in_header.fastq.gz'
-        print(f1file)
+        #print(f1file)
         if os.path.isfile(f1file):
             if not args.force:
                 raise ValueError("The file {} already exists. Overwrite it by including --force in the command line".format(f1file))
