@@ -1,12 +1,12 @@
 Metadata-Version: 1.1
 Name: umierrorcorrect
-Version: 0.21
+Version: 0.22
 Summary: UMI error correct
 Home-page: http://github.com/stahlberggroup/umierrorcorrect
 Author: Tobias Osterlund
 Author-email: tobias.osterlund@gu.se
 License: mit
-Download-URL: https://github.com/stahlberggroup/umierrorcorrect/archive/0.21.tar.gz
+Download-URL: https://github.com/stahlberggroup/umierrorcorrect/archive/0.22.tar.gz
 Description: # umierrorcorrect
         
         Pipeline for analyzing  barcoded amplicon sequencing data with Unique molecular identifiers (UMI)
@@ -82,7 +82,7 @@ Description: # umierrorcorrect
         Example of UMI definition options
         ----------------------------------
         
-        [UMI definition options](https://github.com/tobbeost/umierrorcorrect/stahlberggroup/UMI-definition-options)
+        [UMI definition options](https://github.com/stahlberggroup/umierrorcorrect/wiki/UMI-definition-options)
         
 Platform: UNKNOWN
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics

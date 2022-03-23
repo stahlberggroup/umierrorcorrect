@@ -10,6 +10,7 @@ umierrorcorrect/filter_cons2.py
 umierrorcorrect/filter_vcf.py
 umierrorcorrect/fit_background_model.py
 umierrorcorrect/get_consensus_statistics.py
+umierrorcorrect/get_consensus_statistics2.py
 umierrorcorrect/get_umi_cluster_info.py
 umierrorcorrect/preprocess.py
 umierrorcorrect/run_mapping.py
