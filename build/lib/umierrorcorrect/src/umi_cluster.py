@@ -31,6 +31,7 @@ def hamming_distance(a, b):
 
 def create_substring_matrix(barcodedict, edit_distance_threshold):
     """Divide each barcode in two or three substrings of (approximately) equal length"""
+    edit_distance_threshold = int(edit_distance_threshold)
     umi_length = len(list(barcodedict.keys())[0])
     if edit_distance_threshold <= 1:
         s = round(umi_length//2)
@@ -50,7 +51,7 @@ def create_substring_matrix(barcodedict, edit_distance_threshold):
         s = round(umi_length//3)
         substr_dict1 = {}
         substr_dict2 = {}
-        substr_dict3 = []
+        substr_dict3 = {}
         for barcode in barcodedict:
             sub1 = barcode[:s]
             sub2 = barcode[s:2*s]
@@ -101,6 +102,7 @@ def get_adj_matrix_from_substring(barcodedict, substrdictlist):
 
 
 def cluster_barcodes(barcodedict, edit_distance_threshold):
+    edit_distance_threshold = int(edit_distance_threshold)
     adj_matrix = {}
     if len(barcodedict) > 30:
         # compare substrings for speedup
