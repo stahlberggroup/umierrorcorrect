@@ -8,6 +8,7 @@ import pysam
 # from collections import Counter
 from math import log10
 from itertools import groupby
+from collections import Counter
 from umierrorcorrect.src.group import readBam, read_bam_from_bed
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
 
@@ -359,6 +360,21 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
     else:
         return(None)
 
+def getConsensusMostCommon(group_seqs, contig, regionid, indel_freq_threshold, umi_info, consensus_freq_threshold):
+    total_seqs = len(group_seqs)
+    counts=Counter([x.seq for x in group_seqs])
+    most_common_seq,n=counts.most_common(1)[0]
+    percentage=(n/total_seqs)*100
+    if percentage >= consensus_freq_threshold:
+        pos=min([x.pos for x in group_seqs])
+        consread = consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
+        for base in most_common_seq:
+            consread.add_base(base, get_ascii(60))
+        return(consread)
+    else:
+        return(None)
+
+
 
 def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
     '''Get the consensus sequences for all umis'''
@@ -369,6 +385,13 @@ def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_c
                                          consensus_frequency_cutoff)
     return(consensuses)
 
+def get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
+    consensus_seq={}
+    for umi in position_matrix:
+        consensus_seq[umi] = getConsensusMostCommon(position_matrix[umi], contig, regionid,
+                                                    indel_frequency_cutoff, umis[umi],
+                                                    consensus_frequency_cutoff)
+    return(consensus_seq)
 
 def get_cons_dict(bamfilename, umis, contig, start, end, include_singletons):
     position_matrix = {}

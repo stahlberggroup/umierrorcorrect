@@ -44,6 +44,8 @@ def parseArgs():
                         action='store_true')
     parser.add_argument('-r', '--reference', dest='reference_file', 
                         help='Path to the reference sequence in Fasta format, Used for annotation, required', required=True)
+    parser.add_argument('-c', '--consensus_method', dest='consensus_method',
+                        help="Method for consensus generation. One of 'position', 'most_common' or 'MSA'. [default = %(default)s]", default="position")
     parser.add_argument('-s', '--sample_name', dest='sample_name', 
                         help='Sample name that will be used as base name for the output files. \
                         If excluded the sample name will be extracted from the BAM file.')
@@ -95,7 +97,7 @@ def get_sample_name(bamfile):
 def cluster_consensus_worker(args):
     '''Run UMI clustering and consensus read generation on one region'''
     umi_dict, samplename, tmpfilename, regionid, contig, start, end, edit_distance_threshold, \
-    bamfilename, include_singletons, annotations, fasta, indel_frequency_cutoff, \
+    bamfilename, include_singletons, annotations, fasta, consensus_method, indel_frequency_cutoff, \
     consensus_frequency_cutoff = args  # extract args
     
     indel_frequency_cutoff = float(indel_frequency_cutoff)
@@ -108,9 +110,12 @@ def cluster_consensus_worker(args):
     #Consensus sequence generation
     position_matrix, singleton_matrix = get_cons_dict(bamfilename, umis, contig, 
                                                       start, end, True)  # include_singletons=True
-    consensus_seq = get_all_consensus(position_matrix, umis, 
-                                      contig, regionid, indel_frequency_cutoff, 
-                                      consensus_frequency_cutoff)
+    if consensus_method=='position':
+        consensus_seq = get_all_consensus(position_matrix, umis, 
+                                          contig, regionid, indel_frequency_cutoff, 
+                                          consensus_frequency_cutoff)
+    elif consensus_method=='most_common':
+        consensus_seq = get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff)
     outfilename = tmpfilename
     
     #Write consensus reads (and singletons) to a BAM file
@@ -402,7 +407,7 @@ def split_into_chunks(umi_dict,clusters):
     #return(newdicts)
 
 def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,  bamfilename, output_path, 
-                             include_singletons, fasta, bedregions, num_cpus, 
+                             include_singletons, fasta, bedregions, num_cpus, consensus_method,
                              indel_frequency_cutoff, consensus_frequency_cutoff, region_from_tag=False,starts=[]):
     '''Function for running UMI cluestering and error correction using num_cpus threads,
         i.e. one region on each thread.'''
@@ -434,8 +439,8 @@ def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,
                     tmpfilename = '{}/tmp_{}.bam'.format(output_path, i)
                     argvec.append((x, samplename, tmpfilename, i, contig, posx,
                                     int(ends[contig][pos]), int(edit_distance_threshold), bamfilename,
-                                    include_singletons, annotations, fasta, indel_frequency_cutoff,
-                                    consensus_frequency_cutoff))
+                                    include_singletons, annotations, fasta, consensus_method, 
+                                    indel_frequency_cutoff, consensus_frequency_cutoff))
                     bamfilelist.append('{}/tmp_{}.bam'.format(output_path, i))
                     if not region_from_tag:
                         i += 1
@@ -445,8 +450,8 @@ def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,
             else:
                 argvec.append((regions[contig][pos], samplename, tmpfilename, i, contig, posx, 
                                 int(ends[contig][pos]), int(edit_distance_threshold), bamfilename,
-                                include_singletons, annotations, fasta, indel_frequency_cutoff,
-                                consensus_frequency_cutoff))
+                                include_singletons, annotations, fasta, consensus_method, 
+                                indel_frequency_cutoff, consensus_frequency_cutoff))
                 bamfilelist.append('{}/tmp_{}.bam'.format(output_path, i))
                 if not region_from_tag:
                     i += 1
@@ -480,14 +485,25 @@ def run_umi_errorcorrect(args):
     '''Run the umi clustering and consensus read generation (error correction)'''
     logging.info("Starting UMI clustering")    
     args.output_path = check_output_directory(args.output_path)
+
     if args.regions_from_bed:
         group_method = 'fromBed'
     elif args.regions_from_tag:
         group_method = 'fromTag'
     else:
         group_method = 'automatic'
-
+    args.consensus_method=args.consensus_method.lower()
+    if args.consensus_method.startswith("pos"):
+        consensus_method='position'
+    elif args.consensus_method.startswith("most"):
+        consensus_method='most_common'
+    elif args.consensus_method.startswith("msa") or args.consensus_method.startswith("multiple"):
+        consensus_method='msa'
+    else:
+        print("Please choose consensus method between 'position','most_common','MSA'")
+        sys.exit(1)
     logging.info('Group by position method: {}'.format(group_method))
+    logging.info('Consensus method: {}'.format(consensus_method))
     if not args.bam_file : #see if it is possible to guess bam file from previous step.
         if args.sample_name:
             testname=args.output_path+'/'+args.sample_name + '.sorted.bam'
@@ -534,14 +550,14 @@ def run_umi_errorcorrect(args):
         bamfilelist = cluster_umis_all_regions(regions, ends, edit_distance_threshold,
                                            args.sample_name, args.bam_file, args.output_path,
                                            args.include_singletons, fasta, bedregions,
-                                           num_cpus, args.indel_frequency_threshold,
+                                           num_cpus, consensus_method, args.indel_frequency_threshold,
                                            args.consensus_frequency_threshold,
                                            args.regions_from_tag, starts)
     else:
         bamfilelist = cluster_umis_all_regions(regions, ends, edit_distance_threshold, 
                                            args.sample_name, args.bam_file, args.output_path, 
                                            args.include_singletons, fasta, bedregions, 
-                                           num_cpus, args.indel_frequency_threshold, 
+                                           num_cpus, consensus_method, args.indel_frequency_threshold, 
                                            args.consensus_frequency_threshold)
     merge_bams(args.output_path, bamfilelist, args.sample_name)
     index_bam_file(args.output_path + '/' + args.sample_name + '_consensus_reads.bam',
