@@ -11,6 +11,7 @@ from itertools import groupby
 from collections import Counter
 from umierrorcorrect.src.group import readBam, read_bam_from_bed
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
+import tempfile
 
 class consensus_read:
 
@@ -374,7 +375,10 @@ def getConsensusMostCommon(group_seqs, contig, regionid, indel_freq_threshold, u
     else:
         return(None)
 
-
+def getConsensusMSA(group_seqs, contig, regionid, indel_frequency_threshold, umi_info, consensus_freq_threshold):
+    seqs=[(x.query_name, x.seq) for x in group_seqs]
+    with tempfile.TemporaryFile(mode='w') as f:
+        
 
 def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
     '''Get the consensus sequences for all umis'''
@@ -391,6 +395,14 @@ def get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel
         consensus_seq[umi] = getConsensusMostCommon(position_matrix[umi], contig, regionid,
                                                     indel_frequency_cutoff, umis[umi],
                                                     consensus_frequency_cutoff)
+    return(consensus_seq)
+
+def get_all_consensus_msa(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
+    consensus_seq={}
+    for umi in position_matrix:
+        consensus_seq[umi] = getConsensusMSA(position_matrix[umi], contig, regionid,
+                                             indel_frequency_cutoff, umis[umi],
+                                             consensus_frequency_cutoff)
     return(consensus_seq)
 
 def get_cons_dict(bamfilename, umis, contig, start, end, include_singletons):
