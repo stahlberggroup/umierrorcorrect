@@ -12,6 +12,7 @@ from collections import Counter
 from umierrorcorrect.src.group import readBam, read_bam_from_bed
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
 import tempfile
+import subprocess
 
 class consensus_read:
 
@@ -376,8 +377,49 @@ def getConsensusMostCommon(group_seqs, contig, regionid, indel_freq_threshold, u
         return(None)
 
 def getConsensusMSA(group_seqs, contig, regionid, indel_frequency_threshold, umi_info, consensus_freq_threshold):
-    seqs=[(x.query_name, x.seq) for x in group_seqs]
-    with tempfile.TemporaryFile(mode='w') as f:
+    with tempfile.NamedTemporaryFile() as f:
+        for a in group_seqs:
+            name=a.query_name
+            seq=a.seq
+            f.write(b'>'+bytes(name,"utf8")+b'\n'+bytes(seq,"utf8")+b'\n')
+        output= subprocess.check_output(['mafft','--quiet',f.name])
+        sequences=[]
+    printseq=False
+    s=''
+    for line in output.decode().split('\n'):
+        if line.startswith('>'):
+            if printseq:
+                sequences.append(s)
+            printseq=True
+            s=''
+        else:
+            line=line.rstrip()
+            s += line
+    sequences.append(s)
+    consensus={}
+    for seq in sequences:
+        for i in range(len(sequences[0])):
+            base = seq[i]
+            if i not in consensus:
+                consensus[i] = Counter()
+            consensus[i][base]+=1
+    pos=min([x.pos for x in group_seqs])
+    consread=consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
+    add_consensus = True 
+    n = len(sequences)
+    for i in sorted(consensus):
+        b = consensus[i].most_common(1)[0]
+        fraction= (b[1]/n)*100
+        if b[0] not in '-':
+            if fraction >= consensus_freq_threshold:
+                consread.add_base(b[0],get_ascii(60))
+            else:
+                consread.add_base('N',get_ascii(0))
+                add_consensus=False
+    if add_consensus:
+        return(consread)
+    else:
+        return(None)
         
 
 def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):

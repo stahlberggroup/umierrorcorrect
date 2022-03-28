@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from umierrorcorrect.src.group import readBam, read_bam_from_bed, read_bam_from_tag
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
-from umierrorcorrect.src.get_consensus3 import get_cons_dict, get_all_consensus, write_singleton_reads, get_reference_sequence
+from umierrorcorrect.src.get_consensus3 import get_cons_dict, get_all_consensus, write_singleton_reads, get_reference_sequence, get_all_consensus_most_common, get_all_consensus_msa
 from umierrorcorrect.src.get_cons_info import get_cons_info, write_consensus, calc_major_nonref_allele_frequency
 from umierrorcorrect.src.get_regions_from_bed import read_bed, sort_regions, merge_regions, get_overlap
 from umierrorcorrect.version import __version__
@@ -116,6 +116,10 @@ def cluster_consensus_worker(args):
                                           consensus_frequency_cutoff)
     elif consensus_method=='most_common':
         consensus_seq = get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff)
+    elif consensus_method=='msa':
+        consensus_seq = get_all_consensus_msa(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff)
+
+    
     outfilename = tmpfilename
     
     #Write consensus reads (and singletons) to a BAM file
