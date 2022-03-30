@@ -382,45 +382,47 @@ def getConsensusMSA(group_seqs, contig, regionid, indel_frequency_threshold, umi
             name=a.query_name
             seq=a.seq
             f.write(b'>'+bytes(name,"utf8")+b'\n'+bytes(seq,"utf8")+b'\n')
+        f.seek(0)
         output= subprocess.check_output(['mafft','--quiet',f.name])
         sequences=[]
-    printseq=False
-    s=''
-    for line in output.decode().split('\n'):
-        if line.startswith('>'):
-            if printseq:
-                sequences.append(s)
-            printseq=True
-            s=''
-        else:
-            line=line.rstrip()
-            s += line
-    sequences.append(s)
-    consensus={}
-    for seq in sequences:
-        for i in range(len(sequences[0])):
-            base = seq[i]
-            if i not in consensus:
-                consensus[i] = Counter()
-            consensus[i][base]+=1
-    pos=min([x.pos for x in group_seqs])
-    consread=consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
-    add_consensus = True 
-    n = len(sequences)
-    for i in sorted(consensus):
-        b = consensus[i].most_common(1)[0]
-        fraction= (b[1]/n)*100
-        if b[0] not in '-':
-            if fraction >= consensus_freq_threshold:
-                consread.add_base(b[0],get_ascii(60))
+        printseq=False
+        s=''
+        for line in output.decode().split('\n'):
+            if line.startswith('>'):
+                if printseq:
+                    sequences.append(s)
+                printseq=True
+                s=''
             else:
-                consread.add_base('N',get_ascii(0))
-                add_consensus=False
-    if add_consensus:
-        return(consread)
-    else:
-        return(None)
+                line=line.rstrip()
+                s += line
+        sequences.append(s)
+        consensus={}
+        for seq in sequences:
+            for i in range(len(sequences[0])):
+                base = seq[i]
+                if i not in consensus:
+                    consensus[i] = Counter()
+                consensus[i][base]+=1
+        pos=min([x.pos for x in group_seqs])
+        consread=consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
+        add_consensus = True 
+        n = len(sequences)
+        for i in sorted(consensus):
+            b = consensus[i].most_common(1)[0]
+            fraction= (b[1]/n)*100
+            if b[0] not in '-':
+                if fraction >= consensus_freq_threshold:
+                    consread.add_base(b[0],get_ascii(60))
+                else:
+                    consread.add_base('N',get_ascii(0))
+                    add_consensus=False
+        if add_consensus:
+            return(consread)
+        else:
+            return(None)
         
+
 
 def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
     '''Get the consensus sequences for all umis'''
