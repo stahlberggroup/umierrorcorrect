@@ -16,6 +16,7 @@ import argparse
 import logging
 import pickle
 from itertools import islice
+import json
 
 def parseArgs():
     '''Function for parsing arguments'''
@@ -43,7 +44,7 @@ def parseArgs():
                               BAM file. ',
                         action='store_true')
     parser.add_argument('-r', '--reference', dest='reference_file', 
-                        help='Path to the reference sequence in Fasta format, Used for annotation, required', required=True)
+                        help='Path to the reference sequence in Fasta format, Used for annotation, required')
     parser.add_argument('-c', '--consensus_method', dest='consensus_method',
                         help="Method for consensus generation. One of 'position', 'most_common' or 'MSA'. [default = %(default)s]", default="position")
     parser.add_argument('-s', '--sample_name', dest='sample_name', 
@@ -68,6 +69,8 @@ def parseArgs():
     parser.add_argument('-t', '--num_threads', dest='num_threads', 
                         help='Number of threads to run the program on. If excluded, the number of cpus are \
                         automatically detected')
+    parser.add_argument('--output-json',dest='output_json',action='store_true',
+                        help='Output a JSON format file with UMI family members')
     args = parser.parse_args(sys.argv[1:])
 
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
@@ -93,12 +96,18 @@ def get_sample_name(bamfile):
     sample_name = sample_name.replace('.bam','')
     return(sample_name)
 
+def write_to_json(cons_read):
+    outdict={}
+    outdict['Name']=cons_read.name
+    outdict['Consensus']=cons_read.seq
+    outdict['Members']=dict(cons_read.json)
+    return(outdict)
 
 def cluster_consensus_worker(args):
     '''Run UMI clustering and consensus read generation on one region'''
     umi_dict, samplename, tmpfilename, regionid, contig, start, end, edit_distance_threshold, \
     bamfilename, include_singletons, annotations, fasta, consensus_method, indel_frequency_cutoff, \
-    consensus_frequency_cutoff = args  # extract args
+    consensus_frequency_cutoff,output_json = args  # extract args
     
     indel_frequency_cutoff = float(indel_frequency_cutoff)
     consensus_frequency_cutoff = float(consensus_frequency_cutoff)
@@ -113,11 +122,11 @@ def cluster_consensus_worker(args):
     if consensus_method=='position':
         consensus_seq = get_all_consensus(position_matrix, umis, 
                                           contig, regionid, indel_frequency_cutoff, 
-                                          consensus_frequency_cutoff)
+                                          consensus_frequency_cutoff,output_json)
     elif consensus_method=='most_common':
-        consensus_seq = get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff)
+        consensus_seq = get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff,output_json)
     elif consensus_method=='msa':
-        consensus_seq = get_all_consensus_msa(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff)
+        consensus_seq = get_all_consensus_msa(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff, output_json)
 
     
     outfilename = tmpfilename
@@ -132,6 +141,16 @@ def cluster_consensus_worker(args):
         if include_singletons:
             write_singleton_reads(singleton_matrix, regionid, g)
     
+    if output_json:
+        json_filename=outfilename.replace('.bam','.json')
+        outputlist=[]
+        for cons_read in consensus_seq.values():
+            if cons_read:
+                outputlist.append(write_to_json(cons_read))
+        json_object=json.dumps(outputlist)
+        with open(json_filename,'w') as f:
+            f.write(json_object)
+
     #Generate info for cons file
     cons = get_cons_info(consensus_seq, singleton_matrix)
     consfilename = outfilename.rstrip('.bam') + '.cons'
@@ -412,7 +431,7 @@ def split_into_chunks(umi_dict,clusters):
 
 def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,  bamfilename, output_path, 
                              include_singletons, fasta, bedregions, num_cpus, consensus_method,
-                             indel_frequency_cutoff, consensus_frequency_cutoff, region_from_tag=False,starts=[]):
+                             indel_frequency_cutoff, consensus_frequency_cutoff, region_from_tag=False,starts=[],outputjson=False):
     '''Function for running UMI cluestering and error correction using num_cpus threads,
         i.e. one region on each thread.'''
     argvec = []
@@ -444,7 +463,7 @@ def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,
                     argvec.append((x, samplename, tmpfilename, i, contig, posx,
                                     int(ends[contig][pos]), int(edit_distance_threshold), bamfilename,
                                     include_singletons, annotations, fasta, consensus_method, 
-                                    indel_frequency_cutoff, consensus_frequency_cutoff))
+                                    indel_frequency_cutoff, consensus_frequency_cutoff,outputjson))
                     bamfilelist.append('{}/tmp_{}.bam'.format(output_path, i))
                     if not region_from_tag:
                         i += 1
@@ -455,7 +474,7 @@ def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,
                 argvec.append((regions[contig][pos], samplename, tmpfilename, i, contig, posx, 
                                 int(ends[contig][pos]), int(edit_distance_threshold), bamfilename,
                                 include_singletons, annotations, fasta, consensus_method, 
-                                indel_frequency_cutoff, consensus_frequency_cutoff))
+                                indel_frequency_cutoff, consensus_frequency_cutoff,outputjson))
                 bamfilelist.append('{}/tmp_{}.bam'.format(output_path, i))
                 if not region_from_tag:
                     i += 1
@@ -556,13 +575,13 @@ def run_umi_errorcorrect(args):
                                            args.include_singletons, fasta, bedregions,
                                            num_cpus, consensus_method, args.indel_frequency_threshold,
                                            args.consensus_frequency_threshold,
-                                           args.regions_from_tag, starts)
+                                           args.regions_from_tag, starts,args.output_json)
     else:
         bamfilelist = cluster_umis_all_regions(regions, ends, edit_distance_threshold, 
                                            args.sample_name, args.bam_file, args.output_path, 
                                            args.include_singletons, fasta, bedregions, 
                                            num_cpus, consensus_method, args.indel_frequency_threshold, 
-                                           args.consensus_frequency_threshold)
+                                           args.consensus_frequency_threshold,False,[],args.output_json)
     merge_bams(args.output_path, bamfilelist, args.sample_name)
     index_bam_file(args.output_path + '/' + args.sample_name + '_consensus_reads.bam',
               num_cpus)
