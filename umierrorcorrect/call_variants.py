@@ -25,11 +25,11 @@ def parseArgs():
     parser.add_argument('-p','--params_file',dest='params_file',help='Params file')
     parser.add_argument('-f','--fsize',dest='fsize', help='Family size cutoff (consensus cutoff) for variant calling. [default = %(default)s]', default=3)
     parser.add_argument('-method','--vc-method',dest='vc_method',
-                        help="Variant calling method, Either 'count' or 'bbmodel'. [default = %(default)s]", default='count')
+                        help="Variant calling method, Either 'count' or 'bbmodel'. [default = %(default)s]", default='bbmodel')
     parser.add_argument('-count', '--count_cutoff', dest='count_cutoff',
                         help="Consensus read count cutoff (minimum variant allele depth) for calling a variant if method=count [default = %(default)s]", default=5)
     parser.add_argument('-Q', '--qscore_cutoff', dest='qvalue_threshold',
-                        help='Qscore threshold (Minimum variant significance score) for Variant calling, only if method=bbmodel [default = %(default)s]', default=20)
+                        help='Qscore threshold (Minimum variant significance score) for Variant calling, only if method=bbmodel [default = %(default)s]', default=10)
     args = parser.parse_args(sys.argv[1:])
 
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
