@@ -301,7 +301,11 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         sequence = cons_allele
                         consread.add_insertion(sequence)
                     del(consensus[pos]['I'])
-                    cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                    if poscov < 50:
+                        cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                    else:
+                        cons_base, percent = get_most_common_allele(consensus[pos])
+                        cons_qual = 60
                     consread.add_base(cons_base, get_ascii(cons_qual))
 
                 elif 'D' in consensus[pos] and poscov >= 2:
@@ -318,14 +322,22 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                             consread.add_base('N', get_ascii(0))
                             add_consensus = False
                     elif percent >= indel_freq_threshold:
-                        cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                        if poscov < 50:
+                            cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                        else:
+                            cons_base, percent = get_most_common_allele(consensus[pos])
+                            cons_qual = 60
                         consread.add_base(cons_base, get_ascii(cons_qual))
                     else:
                         consread.add_base('N', get_ascii(0))
                         add_consensus = False
                 elif poscov >= 2:
                     #no indel
-                    cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                    if poscov < 50:
+                        cons_base, cons_qual = calc_consensus_probabilities(consensus[pos])
+                    else:
+                        cons_base, percent = get_most_common_allele(consensus[pos])
+                        cons_qual = 60
                     if consensus_freq_threshold: #test if not None
                         if len(consensus[pos]) == 1:  #100%
                             consread.add_base(cons_base, get_ascii(cons_qual))
@@ -335,7 +347,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                                 if percent >= consensus_freq_threshold: #consensus frequency above threshold
                                     consread.add_base(cons_base, get_ascii(cons_qual))
                                 else:
-                                    consread.add_base('N', get_ascii(0))
+                                    consread.add_base('X', get_ascii(0))
                                     add_consensus = False
                     else:
                         consread.add_base(cons_base, get_ascii(cons_qual))
