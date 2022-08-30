@@ -71,6 +71,7 @@ preprocess.py -h
 run_mapping.py -h
 umi_error_correct.py -h
 get_consensus_statistics.py -h
+call_variants.py -h
 filter_bam.py -h
 filter_cons.py -h
 ```
