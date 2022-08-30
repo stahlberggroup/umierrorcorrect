@@ -61,6 +61,7 @@ The ``run_umierrorcorrect.py`` pipeline performs the following steps:
 - Perform UMI clustering, then error correcion of each UMI cluster
 - Create consensus reads (one representative read per UMI cluster written to a BAM file)
 - Create a consensus output file (collapsed counts per position)
+- Perform variant calling.
 
 It is also to possible to run the pipeline step-by-step.
 
