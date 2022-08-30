@@ -1,6 +1,16 @@
 # umierrorcorrect
 
-Pipeline for analyzing  barcoded amplicon sequencing data with Unique molecular identifiers (UMI)
+Pipeline for analyzing barcoded amplicon sequencing data with Unique molecular identifiers (UMI)
+
+
+Reference
+---------
+
+UMIErrorCorrect has been published in Clinical Chemistry.
+
+[Link to the Umierrorcorrect paper](https://doi.org/10.1093/clinchem/hvac136)
+
+Österlund T., Filges S., Johansson G., Ståhlberg A. UMIErrorCorrect and UMIAnalyzer: Software for Consensus Read Generation, Error Correction, and Visualization Using Unique Molecular Identifiers, Clinical Chemistry, 2022;, hvac136
 
 Installation
 ------------
