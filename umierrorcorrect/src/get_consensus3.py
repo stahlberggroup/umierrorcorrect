@@ -199,9 +199,6 @@ def get_position_coverage(covpos):
     if 'D' in covpos:
         for numseqs in covpos['D'].values():
             coverage += numseqs
-    if 'I' in covpos:
-        for numseqs in covpos['I'].values():
-            coverage += numseqs
     return(coverage)
 
 
@@ -296,7 +293,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                     cons_dict = consensus[pos]['I']
                     cons_allele = max(cons_dict, key=cons_dict.get)
                     cons_num = cons_dict[cons_allele]
-                    percent = (cons_num / len(group_seqs))*100.0
+                    percent = (cons_num / poscov)*100.0
                     if percent >= indel_freq_threshold:
                         sequence = cons_allele
                         consread.add_insertion(sequence)
