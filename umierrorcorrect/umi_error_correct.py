@@ -160,15 +160,16 @@ def update_bam_header(bamfile, samplename):
     return(new_header)
 
 
-def merge_bams(output_path, bamfilelist, sample_name):
+def merge_bams(output_path, original_bamfile, bamfilelist, sample_name):
     '''Merge all BAM files for in bamfilelist, and remove temporary files'''
-    new_header = update_bam_header(bamfilelist[0], sample_name)
-    with pysam.AlignmentFile(output_path + '/' + sample_name + '_consensus_reads.bam', 'wb', header=new_header) as g:
-        for filename in bamfilelist:
-            with pysam.AlignmentFile(filename, 'rb') as f1:
-                for line in f1:
-                    g.write(line)
-
+    new_header = update_bam_header(original_bamfile, sample_name)
+    g=pysam.AlignmentFile(output_path + '/' + sample_name + '_consensus_reads.bam', 'wb', header=new_header)
+    for filename in bamfilelist:
+        with pysam.AlignmentFile(filename, 'rb') as f1:
+            for line in f1:
+                g.write(line)
+    g.close()
+        
     for filename in bamfilelist:
         os.remove(filename)
 
@@ -543,7 +544,7 @@ def run_umi_errorcorrect(args):
                                            args.include_singletons, fasta, bedregions, 
                                            num_cpus, args.indel_frequency_threshold, 
                                            args.consensus_frequency_threshold)
-    merge_bams(args.output_path, bamfilelist, args.sample_name)
+    merge_bams(args.output_path, args.bam_file, bamfilelist, args.sample_name)
     index_bam_file(args.output_path + '/' + args.sample_name + '_consensus_reads.bam',
               num_cpus)
     consfilelist = [x.rstrip('.bam') + '.cons' for x in bamfilelist]
