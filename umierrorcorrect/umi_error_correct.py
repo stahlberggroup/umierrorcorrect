@@ -411,6 +411,7 @@ def cluster_umis_all_regions(regions, ends, edit_distance_threshold, samplename,
     bamfilelist = []
     i = 0
     j = 0
+
     for contig in regions:
         for pos in regions[contig]:
             if contig in bedregions:
@@ -531,6 +532,7 @@ def run_umi_errorcorrect(args):
             bedregions = merge_regions(bedregions, 0)
     else:
         bedregions = []
+    print(bedregions)
     if group_method=='fromTag':
         bamfilelist = cluster_umis_all_regions(regions, ends, edit_distance_threshold,
                                            args.sample_name, args.bam_file, args.output_path,
