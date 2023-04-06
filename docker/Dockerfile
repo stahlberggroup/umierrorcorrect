@@ -5,7 +5,7 @@ FROM ubuntu:18.04
 LABEL base.image="ubuntu:18.04"
 LABEL version="1"
 LABEL software="umierrorcorrect"
-LABEL software.version="0.24"
+LABEL software.version="0.25"
 LABEL about.summary="Umi error correct pipeline"
 LABEL about.home="https://github.com/stahlberggroup/umierrorcorrect"
 LABEL about.tags="Genomics"
