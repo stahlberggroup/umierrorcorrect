@@ -89,14 +89,14 @@ def parseArgs():
                         default=3)
     group5.add_argument('-method','--vc-method',dest='vc_method',
                         help="Variant calling method, Either 'count' or 'bbmodel'. [default = %(default)s]", 
-                        default='count')
+                        default='bbmodel')
     group5.add_argument('-count','--count_cutoff', dest='count_cutoff',
                         help="Consensus read count cutoff (minimum variant allele depth) for calling a variant if method=count [default = %(default)s]", 
                         default=5)
                         
     group5.add_argument('-Q', '--qscore_cutoff', dest='qvalue_threshold',
                         help='Qscore threshold (Minimum variant significance score) for Variant calling, only if method=bbmodel [default = %(default)s]', 
-                        default=20)
+                        default=10)
     group5.add_argument('-params', '--params_file', dest='params_file', help='Params file')
 
     group6 = parser.add_argument_group('Running parameters')

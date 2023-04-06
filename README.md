@@ -1,6 +1,16 @@
 # umierrorcorrect
 
-Pipeline for analyzing  barcoded amplicon sequencing data with Unique molecular identifiers (UMI)
+Pipeline for analyzing barcoded amplicon sequencing data with Unique molecular identifiers (UMI)
+
+
+Reference
+---------
+
+UMIErrorCorrect has been published in Clinical Chemistry.
+
+[Link to the Umierrorcorrect paper](https://doi.org/10.1093/clinchem/hvac136)
+
+Österlund T., Filges S., Johansson G., Ståhlberg A. UMIErrorCorrect and UMIAnalyzer: Software for Consensus Read Generation, Error Correction, and Visualization Using Unique Molecular Identifiers, Clinical Chemistry, 2022;, hvac136
 
 Installation
 ------------
@@ -51,6 +61,7 @@ The ``run_umierrorcorrect.py`` pipeline performs the following steps:
 - Perform UMI clustering, then error correcion of each UMI cluster
 - Create consensus reads (one representative read per UMI cluster written to a BAM file)
 - Create a consensus output file (collapsed counts per position)
+- Perform variant calling.
 
 It is also to possible to run the pipeline step-by-step.
 
@@ -61,6 +72,7 @@ preprocess.py -h
 run_mapping.py -h
 umi_error_correct.py -h
 get_consensus_statistics.py -h
+call_variants.py -h
 filter_bam.py -h
 filter_cons.py -h
 ```

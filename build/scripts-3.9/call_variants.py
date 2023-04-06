@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!python
 import numpy as np
 from numpy import inf
 from numpy import nan
