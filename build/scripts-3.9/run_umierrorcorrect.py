@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!python
 '''
 UMI error correct, run_umierrorcorrect.py - Run the pipeline
 
