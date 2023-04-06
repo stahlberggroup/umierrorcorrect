@@ -8,6 +8,7 @@ import glob
 import sys
 import logging
 import matplotlib.pyplot as plt
+import codecs
 
 def parseArgs():
     '''Function for parsing arguments'''
@@ -44,7 +45,8 @@ def parse_cons_file(filename,fsize=3):
     f1=[]
     c1=[]
     data=[]
-    with open(filename) as f:
+    encoding="iso-8859-1"
+    with open(filename,encoding=encoding) as f:
         f.readline()
         for line in f:
             line=line.rstrip('\n')
