@@ -42,6 +42,10 @@ def parseArgs():
                               If excluded the sample name will be extracted from the fastq files.')
     group1.add_argument('-remove', '--remove_large_files',  dest='remove_large_files', action='store_true',\
                         help='Include this flag to emove the original Fastq and BAM files (reads without error correction).')
+    group1.add_argument('-trim','--adapter_trimming', dest='adapter_trimming', action='store_true',
+                        help="Include this flag to perform automatic 3' adapter trimming (readthrough adapters).")
+    group1.add_argument('-a', '--adapter_sequence',dest='adapter_sequence',
+                        help="Adapter to trim off 3' end. Select one of 'illumina','nextera' or 'small-rna' or enter a custom sequence (see documentation). Default=%(default)s (AGATCGGAAGAGC)", default='illumina')
     group2 = parser.add_argument_group('UMI definition options')
     group2.add_argument('-ul', '--umi_length', dest='umi_length', 
                         help='Length of UMI sequence (number of nucleotides). The UMI is assumed to \

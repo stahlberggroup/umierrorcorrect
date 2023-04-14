@@ -47,6 +47,10 @@ def check_args_fastq(args):
     is_pigz=is_tool('pigz')
     is_gzip=is_tool('gzip')
     is_bwa=is_tool('bwa')
+    if args.adapter_trimming:
+        is_cutadapt=is_tool('cutadapt')
+        if not is_cutadapt:
+            raise ValueError('Cannot find program "cutadapt". Please install it and add it to the path.')
     if not is_bwa:
         raise ValueError('Cannot find program "bwa". Please install it and add it to the path.')
     if is_pigz:
