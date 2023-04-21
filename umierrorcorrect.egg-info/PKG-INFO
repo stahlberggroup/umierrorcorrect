@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: umierrorcorrect
-Version: 0.25
+Version: 0.26
 Summary: UMI error correct
 Home-page: http://github.com/stahlberggroup/umierrorcorrect
 Author: Tobias Osterlund
 Author-email: tobias.osterlund@gu.se
 License: mit
-Download-URL: https://github.com/stahlberggroup/umierrorcorrect/archive/0.25.tar.gz
+Download-URL: https://github.com/stahlberggroup/umierrorcorrect/archive/0.26.tar.gz
 Platform: UNKNOWN
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
 License-File: LICENSE.txt
