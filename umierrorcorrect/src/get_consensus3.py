@@ -249,6 +249,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         # deletion
                         dellength = refpos - (ref+1) #get the length of the deletion
                         delpos = refpos - dellength
+                        #print(consensus[delpos])
                         if delpos not in consensus:
                             consensus[delpos] = {}
                         if 'D' not in consensus[delpos]:
@@ -275,7 +276,6 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         consensus[refpos][base].append(get_phred(qual[qpos]))
                     q = qpos
                     ref = refpos
-    
     if len(consensus) > 0:
         #generate the consensus sequence
         consensus_sorted = sorted(consensus)
@@ -308,7 +308,8 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                     else:
                         cons_base, percent = get_most_common_allele(consensus[pos])
                         cons_qual = 60
-                    consread.add_base(cons_base, get_ascii(cons_qual))
+                    if not cons_base.startswith('D'):
+                        consread.add_base(cons_base, get_ascii(cons_qual))
 
                 elif 'D' in consensus[pos] and poscov >= 2:
                     # add the deletions
@@ -316,6 +317,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                     if a.startswith('D'):
                         if percent >= indel_freq_threshold:
                             dellength = int(a.lstrip('D'))
+                            #print(dellength)
                             consread.add_deletion(dellength)
                             if dellength > 1:
                                 for i in range(1,dellength):

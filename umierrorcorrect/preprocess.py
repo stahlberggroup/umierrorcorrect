@@ -57,6 +57,10 @@ def parseArgs():
                         help='Include this flag to force output files to be overwritten')
     parser.add_argument('-t', '--num_threads', dest='num_threads', 
                         help='Number of threads to run the program on. Default=%(default)s', default='1')
+    parser.add_argument('-trim','--adapter_trimming', dest='adapter_trimming', action='store_true',
+                        help="Include this flag to perform automatic 3' adapter trimming (readthrough adapters).")
+    parser.add_argument('-a', '--adapter_sequence',dest='adapter_sequence',
+                        help="Adapter to trim off 3' end. Select one of 'illumina','nextera' or 'small-rna' or enter a custom sequence (see documentation). Default=%(default)s (AGATCGGAAGAGC)", default='illumina')
     args = parser.parse_args(sys.argv[1:])
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
     logging.info('Starting UMI Error Correct')
@@ -177,6 +181,36 @@ def run_preprocessing(args):
             r1file = run_unpigz(args.read1, newtmpdir, args.num_threads, args.gziptool)
 
     logging.info('Writing output files to {}'.format(args.output_path))
+    if args.adapter_trimming==True:
+        if args.adapter_sequence.lower()=='illumina':
+            adapter='AGATCGGAAGAGC'
+        elif args.adapter_sequence.lower()=='nextera':
+            adapter='CTGTCTCTTATA'
+        elif args.adapter_sequence.lower()=='small-rna':
+            adapter='ATGGAATTCTCG'
+        else:
+            adapter=args.adapter_sequence.upper()
+    
+        if args.mode == 'single':
+            outfilename = args.output_path + '/' + args.sample_name + '_trimmed.fastq'
+            command=['cutadapt', '-a', adapter, '-o', outfilename, '-O', '3', '-m', '20', r1file]
+        else:
+            outfile1 = args.output_path + '/' + args.sample_name + '_R1_trimmed.fastq'
+            outfile2 = args.output_path + '/' + args.sample_name + '_R2_trimmed.fastq'
+            command=['cutadapt', '-a', adapter, '-A', adapter,'-o', outfile1, '-p', outfile2, '-O', '3', '-m', '20', r1file,r2file]
+        logging.info("Performing adapter trimming using cutadapt with adapter sequence {}".format(adapter))
+        p = subprocess.Popen(command, stdout=subprocess.PIPE)
+        p.communicate()
+        p.wait()
+        if args.mode=='single':
+            os.remove(r1file)
+            r1file=outfilename
+        else:
+            os.remove(r1file)
+            os.remove(r2file)
+            r1file=outfile1
+            r2file=outfile2
+
     if args.mode == 'single':
         outfilename = args.output_path + '/' + args.sample_name + '_umis_in_header.fastq'
         nseqs = preprocess_se(r1file, outfilename, args.umi_length, args.spacer_length)
