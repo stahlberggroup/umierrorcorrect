@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!python
 from umierrorcorrect.src.group import readBam, read_bam_from_bed, read_bam_from_tag
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
 from umierrorcorrect.src.get_consensus3 import get_cons_dict, get_all_consensus, write_singleton_reads, get_reference_sequence, get_all_consensus_most_common, get_all_consensus_msa

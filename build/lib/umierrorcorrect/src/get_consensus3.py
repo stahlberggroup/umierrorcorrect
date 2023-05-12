@@ -8,8 +8,11 @@ import pysam
 # from collections import Counter
 from math import log10
 from itertools import groupby
+from collections import Counter
 from umierrorcorrect.src.group import readBam, read_bam_from_bed
 from umierrorcorrect.src.umi_cluster import cluster_barcodes, get_connected_components, merge_clusters
+import tempfile
+import subprocess
 
 class consensus_read:
 
@@ -24,6 +27,7 @@ class consensus_read:
         self.cigarstring = ''
         self.is_split_read=False
         self.splits=[]
+        self.json={}
         self.name = 'Consensus_read_{}_{}_Count={}'.format(regionid,
                                                            name, count)
         self.count = count
@@ -64,7 +68,8 @@ class consensus_read:
                 self.splits[-1]=(tmppos,position1)
                 self.splits.append(position2)
             
-
+    def add_json_object(self,dictionary):
+        self.json=dictionary
 
     def write_to_bam(self, f):
         if self.is_split_read==False:
@@ -202,7 +207,7 @@ def get_position_coverage(covpos):
     return(coverage)
 
 
-def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, consensus_freq_threshold):
+def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, consensus_freq_threshold, output_json):
     '''Takes a list of pysam entries (rows in the BAM file) as input and generates a consensus sequence.'''
     consensus = {}
     for read in group_seqs:
@@ -244,6 +249,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         # deletion
                         dellength = refpos - (ref+1) #get the length of the deletion
                         delpos = refpos - dellength
+                        #print(consensus[delpos])
                         if delpos not in consensus:
                             consensus[delpos] = {}
                         if 'D' not in consensus[delpos]:
@@ -270,7 +276,6 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                         consensus[refpos][base].append(get_phred(qual[qpos]))
                     q = qpos
                     ref = refpos
-    
     if len(consensus) > 0:
         #generate the consensus sequence
         consensus_sorted = sorted(consensus)
@@ -303,7 +308,8 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                     else:
                         cons_base, percent = get_most_common_allele(consensus[pos])
                         cons_qual = 60
-                    consread.add_base(cons_base, get_ascii(cons_qual))
+                    if not cons_base.startswith('D'):
+                        consread.add_base(cons_base, get_ascii(cons_qual))
 
                 elif 'D' in consensus[pos] and poscov >= 2:
                     # add the deletions
@@ -311,6 +317,7 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
                     if a.startswith('D'):
                         if percent >= indel_freq_threshold:
                             dellength = int(a.lstrip('D'))
+                            #print(dellength)
                             consread.add_deletion(dellength)
                             if dellength > 1:
                                 for i in range(1,dellength):
@@ -362,6 +369,9 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
             prevpos=pos
 
         if add_consensus:
+            if output_json:
+                counts=Counter([x.seq for x in group_seqs])
+                consread.add_json_object(counts)
             return(consread)
         else:
             return(None)
@@ -369,15 +379,100 @@ def getConsensus3(group_seqs, contig, regionid, indel_freq_threshold, umi_info, 
         return(None)
 
 
-def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff):
+def getConsensusMostCommon(group_seqs, contig, regionid, indel_freq_threshold, umi_info, consensus_freq_threshold,output_json):
+    total_seqs = len(group_seqs)
+    counts=Counter([x.seq for x in group_seqs])
+    most_common_seq,n=counts.most_common(1)[0]
+    percentage=(n/total_seqs)*100
+    if percentage >= consensus_freq_threshold:
+        pos=min([x.pos for x in group_seqs])
+        consread = consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
+        if most_common_seq:
+            for base in most_common_seq:
+                consread.add_base(base, get_ascii(60))
+            if output_json:
+                consread.add_json_object(counts)
+        return(consread)
+    else:
+        return(None)
+
+def getConsensusMSA(group_seqs, contig, regionid, indel_frequency_threshold, umi_info, consensus_freq_threshold,output_json):
+
+    with tempfile.NamedTemporaryFile() as f:
+        for a in group_seqs:
+            name=a.query_name
+            seq=a.seq
+            if seq:
+                f.write(b'>'+bytes(name,"utf8")+b'\n'+bytes(seq,"utf8")+b'\n')
+        f.seek(0)
+        output= subprocess.check_output(['mafft','--quiet',f.name])
+        sequences=[]
+        printseq=False
+        s=''
+        for line in output.decode().split('\n'):
+            if line.startswith('>'):
+                if printseq:
+                    sequences.append(s)
+                printseq=True
+                s=''
+            else:
+                line=line.rstrip()
+                s += line
+        sequences.append(s)
+        consensus={}
+        for seq in sequences:
+            for i in range(len(sequences[0])):
+                base = seq[i]
+                if i not in consensus:
+                    consensus[i] = Counter()
+                consensus[i][base]+=1
+        pos=min([x.pos for x in group_seqs])
+        consread=consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
+        add_consensus = True 
+        n = len(sequences)
+        for i in sorted(consensus):
+            b = consensus[i].most_common(1)[0]
+            fraction= (b[1]/n)*100
+            if b[0] not in '-':
+                if fraction >= consensus_freq_threshold:
+                    consread.add_base(b[0],get_ascii(60))
+                else:
+                    consread.add_base('N',get_ascii(0))
+                    add_consensus=False
+        if add_consensus:
+            if output_json:
+                counts=Counter([x.seq for x in group_seqs])
+                consread.add_json_object(counts)
+            return(consread)
+        else:
+            return(None)
+        
+
+
+def get_all_consensus(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff, output_json):
     '''Get the consensus sequences for all umis'''
     consensuses = {}
     for umi in position_matrix:
         consensuses[umi] = getConsensus3(position_matrix[umi], contig, regionid, 
                                          indel_frequency_cutoff, umis[umi],
-                                         consensus_frequency_cutoff)
+                                         consensus_frequency_cutoff,output_json)
     return(consensuses)
 
+def get_all_consensus_most_common(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff, output_json):
+    consensus_seq={}
+    for umi in position_matrix:
+        consensus_seq[umi] = getConsensusMostCommon(position_matrix[umi], contig, regionid,
+                                                    indel_frequency_cutoff, umis[umi],
+                                                    consensus_frequency_cutoff,output_json)
+    return(consensus_seq)
+
+def get_all_consensus_msa(position_matrix, umis, contig, regionid, indel_frequency_cutoff, consensus_frequency_cutoff,output_json):
+    consensus_seq={}
+    for umi in position_matrix:
+        consensus_seq[umi] = getConsensusMSA(position_matrix[umi], contig, regionid,
+                                             indel_frequency_cutoff, umis[umi],
+                                             consensus_frequency_cutoff,output_json)
+    return(consensus_seq)
 
 def get_cons_dict(bamfilename, umis, contig, start, end, include_singletons):
     position_matrix = {}

@@ -387,10 +387,11 @@ def getConsensusMostCommon(group_seqs, contig, regionid, indel_freq_threshold, u
     if percentage >= consensus_freq_threshold:
         pos=min([x.pos for x in group_seqs])
         consread = consensus_read(contig, regionid, pos, umi_info.centroid, umi_info.count)
-        for base in most_common_seq:
-            consread.add_base(base, get_ascii(60))
-        if output_json:
-            consread.add_json_object(counts)
+        if most_common_seq:
+            for base in most_common_seq:
+                consread.add_base(base, get_ascii(60))
+            if output_json:
+                consread.add_json_object(counts)
         return(consread)
     else:
         return(None)
@@ -401,7 +402,8 @@ def getConsensusMSA(group_seqs, contig, regionid, indel_frequency_threshold, umi
         for a in group_seqs:
             name=a.query_name
             seq=a.seq
-            f.write(b'>'+bytes(name,"utf8")+b'\n'+bytes(seq,"utf8")+b'\n')
+            if seq:
+                f.write(b'>'+bytes(name,"utf8")+b'\n'+bytes(seq,"utf8")+b'\n')
         f.seek(0)
         output= subprocess.check_output(['mafft','--quiet',f.name])
         sequences=[]
