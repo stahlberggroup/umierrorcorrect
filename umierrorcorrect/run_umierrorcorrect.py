@@ -46,6 +46,8 @@ def parseArgs():
                         help="Include this flag to perform automatic 3' adapter trimming (readthrough adapters).")
     group1.add_argument('-a', '--adapter_sequence',dest='adapter_sequence',
                         help="Adapter to trim off 3' end. Select one of 'illumina','nextera' or 'small-rna' or enter a custom sequence (see documentation). Default=%(default)s (AGATCGGAAGAGC)", default='illumina')
+    group1.add_argument('--output-json',dest='output_json',action='store_true',
+                        help='Output a JSON format file with UMI family members')
     group2 = parser.add_argument_group('UMI definition options')
     group2.add_argument('-ul', '--umi_length', dest='umi_length', 
                         help='Length of UMI sequence (number of nucleotides). The UMI is assumed to \
@@ -75,7 +77,8 @@ def parseArgs():
     group3.add_argument('-p', '--position_threshold', dest='position_threshold', 
                         help='Position threshold for grouping by position [default = %(default)s]',
                         default=10)
-    
+    group3.add_argument('-c', '--consensus_method', dest='consensus_method',
+                        help="Method for consensus generation. One of 'position', 'most_common' or 'MSA'. [default = %(default)s]", default="position") 
     group4 = parser.add_argument_group('Consensus options')
     group4.add_argument('-cons_freq', '--consensus_frequency_threshold', dest='consensus_frequency_threshold',
                         help='Minimum percent of the majority base at a position for consensus to be called. \
